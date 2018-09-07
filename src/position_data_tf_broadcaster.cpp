@@ -227,9 +227,9 @@ void handle_udp_msg(int fd, int argc, char* argv[])
     //ros::Publisher data_publisher = n.advertise<sensor_msgs::JointState>("position_data", 50);
     tf::TransformBroadcaster pelvis, l5, l3, t12, t8, neck, head, right_shoulder, right_upper_arm, right_forearm, right_hand, left_shoulder, left_upper_arm, left_forearm, left_hand, right_upper_leg, right_lower_leg, right_foot, right_toe, left_upper_leg, left_lower_leg, left_foot, left_toe;
    
-    while(ros::ok) 
+    while(ros::ok()) 
     {
-	while(1) {
+	// while(1) {
 	    memset(buf, 0, BUFF_LEN);
 	    count = recvfrom(fd, buf+read_bytes, BUFF_LEN, 0, (struct sockaddr*)&client_addr, &len);
 	    if(count == -1)
@@ -254,12 +254,12 @@ void handle_udp_msg(int fd, int argc, char* argv[])
 			    case 1:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-				pelvis.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "pelvis"));
+					pelvis.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "pelvis"));
 				break;
 			    case 2:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-				l5.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "l5"));
+					l5.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "l5"));
 				break;
 			    case 3:
 				temp.sec = time_stamp_sec;
@@ -392,7 +392,7 @@ void handle_udp_msg(int fd, int argc, char* argv[])
 	    //parse_data(buf, &index, &parse_bytes);
 	    //memset(buf, 0, BUFF_LEN);
 	}
-    }
+    // }
     free(buf);
 }
 
@@ -434,5 +434,8 @@ int main(int argc, char* argv[])
 	
     close(server_fd);
 
+	ros::shutdown();    
+    
+    return 0;
 }
 	
