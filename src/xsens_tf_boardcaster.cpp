@@ -1,3 +1,5 @@
+// an updated version of tf publisher
+
 #include <ros/ros.h>
 #include <tf/transform_broadcaster.h>
 
@@ -44,9 +46,10 @@ void parse_header(Header *header, char *buf, int *time_stamp_sec, int *time_stam
 	//(debug) printf("sec = (int)float_time_code = %d\n", sec);
 	nanosec = (int)((float_time_code - sec)*1000);
 	//(debug)printf("nanosec = %d\n", nanosec);
+	to_stamp_sec = sec;
 		
 	//**convert to time stamp**
-	*time_stamp_sec = sec;
+	*time_stamp_sec = to_stamp_sec;
 	*time_stamp_nsec = nanosec;
     } else if (header->time_code > 99999 && header->time_code <= 9999999) { //if 99.999 < time_code <= 99:99.999;
 	float_time_code = float_time_code/100000;
@@ -56,7 +59,7 @@ void parse_header(Header *header, char *buf, int *time_stamp_sec, int *time_stam
 	float_time_code /= 1000;
 	sec = (int)float_time_code;
 	nanosec = (int)((float_time_code - sec)*1000);
-	to_stamp_sec = sec + min*60;
+	to_stamp_sec = sec + min*100;
 	/* wrong logic!!
 	   nanosec = (int)((float_time_code - a)*1000); 
 	   float_time_code = (float)a;
@@ -65,7 +68,7 @@ void parse_header(Header *header, char *buf, int *time_stamp_sec, int *time_stam
 	   sec = (int)((float_time_code - min)*100);
 	   to_stamp_sec = sec + min*60; */
 	//**convert to time stamp**
-	*time_stamp_sec = sec;
+	*time_stamp_sec = to_stamp_sec;
 	*time_stamp_nsec = nanosec;
     } else if (header->time_code > 9999999 && header->time_code <= 999999999) { //if 99:99.999 < time_code < 99:99:99.999;
 	float_time_code /= 10000000;
@@ -79,7 +82,7 @@ void parse_header(Header *header, char *buf, int *time_stamp_sec, int *time_stam
 	float_time_code /= 1000;
 	sec = (int)float_time_code;
 	nanosec = (int)((float_time_code - sec)*1000);
-	to_stamp_sec = sec + min*60 + hour*60*60;
+	to_stamp_sec = sec + min*100 + hour*100*100;
 	/*wrong logic!!
 	  nanosec = (int)((float_time_code - a)*1000);
 	  float_time_code = (float)a;
@@ -92,7 +95,7 @@ void parse_header(Header *header, char *buf, int *time_stamp_sec, int *time_stam
 	  min = (header->time_code - hour)*100;
 	  sec = sec + min*60 + hour*60*60; */
 	//convert to time stamp
-	*time_stamp_sec = sec;
+	*time_stamp_sec = to_stamp_sec;
 	*time_stamp_nsec = nanosec;
     }
     header->character_ID = buf[17];
@@ -112,15 +115,30 @@ void parse_header(Header *header, char *buf, int *time_stamp_sec, int *time_stam
 
 float parse_coordinates(float coordinate, int count, char *buf)
 {
-    //test endian
-
+    // check Endianess
+    //**** Intel processors use "Little Endian" byte order!
+    int num = 1;
+    int Endianess;
+    if(*(char *)&num == 1) {
+	Endianess = 0; //Little_Endian;
+    } else {
+	Endianess = 1; //Big_Endian;
+    }
+   
     unsigned char byte_array[4];
     memcpy(&byte_array, buf+count, sizeof(coordinate));
-    *((unsigned char*)(&coordinate) + 3) = byte_array[0];
-    *((unsigned char*)(&coordinate) + 2) = byte_array[1];
-    *((unsigned char*)(&coordinate) + 1) = byte_array[2];
-    *((unsigned char*)(&coordinate) + 0) = byte_array[3];
-    //coordinate /= 100; (Only need this in Type 01)
+    
+    if (Endianess == 0) {
+	*((unsigned char*)(&coordinate) + 3) = byte_array[0];
+	*((unsigned char*)(&coordinate) + 2) = byte_array[1];
+	*((unsigned char*)(&coordinate) + 1) = byte_array[2];
+	*((unsigned char*)(&coordinate) + 0) = byte_array[3];
+    } else if (Endianess == 1) {
+	*((unsigned char*)(&coordinate) + 3) = byte_array[3];
+	*((unsigned char*)(&coordinate) + 2) = byte_array[2];
+	*((unsigned char*)(&coordinate) + 1) = byte_array[1];
+	*((unsigned char*)(&coordinate) + 0) = byte_array[0];
+    }
     return coordinate;
 }
 
@@ -210,9 +228,19 @@ void handle_udp_msg(int fd, int argc, char* argv[])
     ros::NodeHandle n;
     //ros::Publisher data_publisher = n.advertise<sensor_msgs::JointState>("position_data", 50);
     tf::TransformBroadcaster pelvis, l5, l3, t12, t8, neck, head, right_shoulder, right_upper_arm, right_forearm, right_hand, left_shoulder, left_upper_arm, left_forearm, left_hand, right_upper_leg, right_lower_leg, right_foot, right_toe, left_upper_leg, left_lower_leg, left_foot, left_toe;
-    while(1) 
+    std::vector<tf::TransformBroadcaster> human_tf_board = {pelvis, l5, l3, t12, t8, neck, head, 
+        right_shoulder, right_upper_arm, right_forearm, right_hand, left_shoulder, 
+        left_upper_arm, left_forearm, left_hand, right_upper_leg, right_lower_leg, 
+        right_foot, right_toe, left_upper_leg, left_lower_leg, left_foot, left_toe};
+
+    std::vector<std::string> frame_name = {"pelvis", "l5", "l3", "t12", "t8", "neck", "head", 
+        "right_shoulder", "right_upper_arm", "right_forearm", "right_hand", "left_shoulder", 
+        "left_upper_arm", "left_forearm", "left_hand", "right_upper_leg", "right_lower_leg", 
+        "right_foot", "right_toe", "left_upper_leg", "left_lower_leg", "left_foot", "left_toe"};
+
+    while(ros::ok()) 
     {
-	while(ros::ok()) {
+	// while(1) {
 	    memset(buf, 0, BUFF_LEN);
 	    count = recvfrom(fd, buf+read_bytes, BUFF_LEN, 0, (struct sockaddr*)&client_addr, &len);
 	    if(count == -1)
@@ -231,126 +259,10 @@ void handle_udp_msg(int fd, int argc, char* argv[])
 			//printf("Message type 02: Pose data (Quaternion)\n"); 
 			for (p = 0; p < header.datagram_counter; p++) {
 			    parse_body(buf+cur_index+p*32, &segment_id,  &x, &y, &z, &re, &i, &j, &k);
-			    printf("re = %f, i = %f, j = %f, k = %f\n", re, i, j, k);
-			    ros::Time temp;	    
-			    switch (segment_id) {
-			    case 1:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-				pelvis.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "pelvis"));
-				break;
-			    case 2:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-				l5.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "l5"));
-				break;
-			    case 3:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-			        l3.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "l3"));
-				break;
-			    case 4:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-			        t12.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "t12"));
-				break;
-			    case 5:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-			        t8.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "t8"));
-				break;
-			    case 6:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-			        neck.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "neck"));
-				break;
-			    case 7:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-			        head.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "head"));
-				break;
-			    case 8:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-			        right_shoulder.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "right_shoulder"));
-				break;
-			    case 9:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-			        right_upper_arm.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "right_upper_arm"));
-				break;
-			    case 10:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-			        right_forearm.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "right_forearm"));
-				break;
-			    case 11:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-			        right_hand.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "right_hand"));
-				break;
-			    case 12:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-			        left_shoulder.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "left_shoulder"));
-				break;
-			    case 13:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-			        left_upper_arm.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "left_upper_arm"));
-				break;
-			    case 14:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-			        left_forearm.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "left_forearm"));
-				break;
-			    case 15:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-			        left_hand.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "left_hand"));
-				break;
-				break;
-			    case 16:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-			        right_upper_leg.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "right_upper_leg"));
-				break;
-			    case 17:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-			        right_lower_leg.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "right_lower_leg"));
-				break;
-			    case 18:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-			        right_foot.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "right_foot"));
-				break;
-			    case 19:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-			        right_toe.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "right_toe"));
-				break;
-			    case 20:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-				left_upper_leg.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "left_upper_leg"));
-				break;
-			    case 21:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-				left_lower_leg.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "left_lower_leg"));
-				break;
-			    case 22:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-				left_foot.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "left_foot"));
-				break;
-			    case 23:
-				temp.sec = time_stamp_sec;
-				temp.nsec = time_stamp_nsec;
-				left_toe.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "left_toe"));
-				break;
-			    }
+			    // printf("re = %f, i = %f, j = %f, k = %f\n", re, i, j, k);
+			    ros::Time temp = ros::Time::now();	
+                human_tf_board[segment_id-1].sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), 
+                                tf::Vector3(x, y, z)), temp, "body_sensor", frame_name[segment_id-1]));
 			}
 			cur_index += 32*header.datagram_counter;
 			int left = read_bytes - cur_index;
@@ -375,7 +287,7 @@ void handle_udp_msg(int fd, int argc, char* argv[])
 	    //parse_data(buf, &index, &parse_bytes);
 	    //memset(buf, 0, BUFF_LEN);
 	}
-    }
+    // }
     free(buf);
 }
 
@@ -417,8 +329,8 @@ int main(int argc, char* argv[])
 	
     close(server_fd);
 
-
-
-
+	ros::shutdown();    
+    
+    return 0;
 }
 	

@@ -132,7 +132,7 @@ include_directories(
 # add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-# add_executable(xsens_data_tf_broadcaster src/position_data_tf_broadcaster.cpp)
+# add_executable(xsens_data_tf_broadcaster )
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/xsens_data_tf_node.cpp)
