@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(xsens_data_tf)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -116,6 +116,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
+  include ${catkin_INCLUDE_DIRS}
 # include
   ${catkin_INCLUDE_DIRS}
 )
@@ -131,7 +132,7 @@ include_directories(
 # add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(xsens_data_tf_broadcaster src/position_data_tf_broadcaster.cpp)
+# add_executable(xsens_data_tf_broadcaster src/position_data_tf_broadcaster.cpp)
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/xsens_data_tf_node.cpp)
@@ -147,7 +148,7 @@ add_executable(xsens_data_tf_broadcaster src/position_data_tf_broadcaster.cpp)
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(xsens_data_tf_broadcaster ${catkin_LIBRARIES})
+# target_link_libraries(xsens_data_tf_broadcaster ${catkin_LIBRARIES})
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
@@ -199,3 +200,12 @@ target_link_libraries(xsens_data_tf_broadcaster ${catkin_LIBRARIES})
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+
+add_executable(xsens_tf_boardcaster
+  src/xsens_tf_boardcaster.cpp
+)
+add_dependencies(xsens_tf_boardcaster ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(xsens_tf_boardcaster
+  ${catkin_LIBRARIES}
+)

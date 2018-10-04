@@ -227,6 +227,8 @@ void handle_udp_msg(int fd, int argc, char* argv[])
     //ros::Publisher data_publisher = n.advertise<sensor_msgs::JointState>("position_data", 50);
     tf::TransformBroadcaster pelvis, l5, l3, t12, t8, neck, head, right_shoulder, right_upper_arm, right_forearm, right_hand, left_shoulder, left_upper_arm, left_forearm, left_hand, right_upper_leg, right_lower_leg, right_foot, right_toe, left_upper_leg, left_lower_leg, left_foot, left_toe;
    
+	
+
     while(ros::ok()) 
     {
 	// while(1) {
@@ -248,124 +250,124 @@ void handle_udp_msg(int fd, int argc, char* argv[])
 			//printf("Message type 02: Pose data (Quaternion)\n"); 
 			for (p = 0; p < header.datagram_counter; p++) {
 			    parse_body(buf+cur_index+p*32, &segment_id,  &x, &y, &z, &re, &i, &j, &k);
-			    printf("re = %f, i = %f, j = %f, k = %f\n", re, i, j, k);
+			    // printf("re = %f, i = %f, j = %f, k = %f\n", re, i, j, k);
 			    ros::Time temp;	    
 			    switch (segment_id) {
 			    case 1:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-					pelvis.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "pelvis"));
+					pelvis.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "pelvis"));
 				break;
 			    case 2:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-					l5.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "l5"));
+					l5.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "l5"));
 				break;
 			    case 3:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-			        l3.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "l3"));
+			        l3.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "l3"));
 				break;
 			    case 4:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-			        t12.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "t12"));
+			        t12.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "t12"));
 				break;
 			    case 5:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-			        t8.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "t8"));
+			        t8.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "t8"));
 				break;
 			    case 6:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-			        neck.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "neck"));
+			        neck.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "neck"));
 				break;
 			    case 7:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-			        head.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "head"));
+			        head.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "head"));
 				break;
 			    case 8:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-			        right_shoulder.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "right_shoulder"));
+			        right_shoulder.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "right_shoulder"));
 				break;
 			    case 9:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-			        right_upper_arm.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "right_upper_arm"));
+			        right_upper_arm.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "right_upper_arm"));
 				break;
 			    case 10:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-			        right_forearm.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "right_forearm"));
+			        right_forearm.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "right_forearm"));
 				break;
 			    case 11:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-			        right_hand.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "right_hand"));
+			        right_hand.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "right_hand"));
 				break;
 			    case 12:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-			        left_shoulder.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "left_shoulder"));
+			        left_shoulder.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "left_shoulder"));
 				break;
 			    case 13:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-			        left_upper_arm.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "left_upper_arm"));
+			        left_upper_arm.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "left_upper_arm"));
 				break;
 			    case 14:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-			        left_forearm.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "left_forearm"));
+			        left_forearm.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "left_forearm"));
 				break;
 			    case 15:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-			        left_hand.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "left_hand"));
+			        left_hand.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "left_hand"));
 				break;
 				break;
 			    case 16:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-			        right_upper_leg.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "right_upper_leg"));
+			        right_upper_leg.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "right_upper_leg"));
 				break;
 			    case 17:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-			        right_lower_leg.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "right_lower_leg"));
+			        right_lower_leg.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "right_lower_leg"));
 				break;
 			    case 18:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-			        right_foot.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "right_foot"));
+			        right_foot.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "right_foot"));
 				break;
 			    case 19:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-			        right_toe.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "right_toe"));
+			        right_toe.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "right_toe"));
 				break;
 			    case 20:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-				left_upper_leg.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "left_upper_leg"));
+				left_upper_leg.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "left_upper_leg"));
 				break;
 			    case 21:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-				left_lower_leg.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "left_lower_leg"));
+				left_lower_leg.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "left_lower_leg"));
 				break;
 			    case 22:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-				left_foot.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "left_foot"));
+				left_foot.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "left_foot"));
 				break;
 			    case 23:
 				temp.sec = time_stamp_sec;
 				temp.nsec = time_stamp_nsec;
-				left_toe.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sonser", "left_toe"));
+				left_toe.sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), tf::Vector3(x, y, z)), temp, "body_sensor", "left_toe"));
 				break;
 			    }
 			}
