@@ -227,12 +227,17 @@ void handle_udp_msg(int fd, int argc, char* argv[])
     ros::init(argc, argv, "xsens_data_publisher_tf"); //name of the node
     ros::NodeHandle n;
     //ros::Publisher data_publisher = n.advertise<sensor_msgs::JointState>("position_data", 50);
-    tf::TransformBroadcaster pelvis, l5, l3, t12, t8, neck, head, right_shoulder, right_upper_arm, right_forearm, right_hand, left_shoulder, left_upper_arm, left_forearm, left_hand, right_upper_leg, right_lower_leg, right_foot, right_toe, left_upper_leg, left_lower_leg, left_foot, left_toe;
-    std::vector<tf::TransformBroadcaster> human_tf_board = {pelvis, l5, l3, t12, t8, neck, head, 
+
+    tf::TransformBroadcaster human_tf_board;
+
+    tf::StampedTransform pelvis, l5, l3, t12, t8, neck, head, right_shoulder, right_upper_arm, right_forearm, right_hand, left_shoulder, left_upper_arm, left_forearm, left_hand, right_upper_leg, right_lower_leg, right_foot, right_toe, left_upper_leg, left_lower_leg, left_foot, left_toe;
+    std::vector<tf::StampedTransform> human_tf = {pelvis, l5, l3, t12, t8, neck, head, 
         right_shoulder, right_upper_arm, right_forearm, right_hand, left_shoulder, 
         left_upper_arm, left_forearm, left_hand, right_upper_leg, right_lower_leg, 
         right_foot, right_toe, left_upper_leg, left_lower_leg, left_foot, left_toe};
 
+
+    std::string prefix = "human_state/";
     std::vector<std::string> frame_name = {"pelvis", "l5", "l3", "t12", "t8", "neck", "head", 
         "right_shoulder", "right_upper_arm", "right_forearm", "right_hand", "left_shoulder", 
         "left_upper_arm", "left_forearm", "left_hand", "right_upper_leg", "right_lower_leg", 
@@ -257,13 +262,17 @@ void handle_udp_msg(int fd, int argc, char* argv[])
 		    if (read_bytes >= 24+32*header.datagram_counter) {
 			int p = 0;
 			//printf("Message type 02: Pose data (Quaternion)\n"); 
-			for (p = 0; p < header.datagram_counter; p++) {
+			ros::Time temp = ros::Time::now();
+            for (p = 0; p < header.datagram_counter; p++) {
 			    parse_body(buf+cur_index+p*32, &segment_id,  &x, &y, &z, &re, &i, &j, &k);
 			    // printf("re = %f, i = %f, j = %f, k = %f\n", re, i, j, k);
-			    ros::Time temp = ros::Time::now();	
-                human_tf_board[segment_id-1].sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), 
-                                tf::Vector3(x, y, z)), temp, "body_sensor", frame_name[segment_id-1]));
+                // human_tf_board[segment_id-1].sendTransform(tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), 
+                //                 tf::Vector3(x, y, z)), temp, "body_sensor", prefix+frame_name[segment_id-1]));
+                
+                human_tf[segment_id-1] = tf::StampedTransform(tf::Transform(tf::Quaternion(i, j, k, re), 
+                                tf::Vector3(x, y, z)), temp, "body_sensor", prefix+frame_name[segment_id-1]);
 			}
+            human_tf_board.sendTransform(human_tf);
 			cur_index += 32*header.datagram_counter;
 			int left = read_bytes - cur_index;
 			//printf("bytes left to parse = %d\n", left);
