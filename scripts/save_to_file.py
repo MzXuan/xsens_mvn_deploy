@@ -72,7 +72,7 @@ class statesWriter():
         values = [str(t)]	#first column will have rosbag timestamp
         for pair in instantaneousListOfData:
             values.append(pair[1])
-        print values
+        # print values
         filewriter.writerow(values)   
 
 
@@ -80,7 +80,7 @@ class statesWriter():
 def main():
 
     rospy.init_node('retrans_writer')
-    stateswriter = statesWriter('/home/xuan/Documents/Dataset_10_04/claphand','2018-10-04-21-02-01')
+    stateswriter = statesWriter('~/Documents/Dataset_10_04/claphand','2018-10-04-21-02-01')
     rospy.spin()
 
     # rate = rospy.Rate(30.0) #30hz
