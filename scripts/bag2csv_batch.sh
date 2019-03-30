@@ -13,7 +13,7 @@ echo "start bash script"
 
 #rosrun xsens_data_tf repub_trans.py
 
-filepath="/home/xuan/Documents/Dataset_12_20/object1/pose4"
+filepath=$DATASET_PATH$
 # let count=1
 # let count2=2
 
